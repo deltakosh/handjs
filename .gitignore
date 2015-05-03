@@ -1,6 +1,7 @@
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
 [Oo]bj/
+.vs/
 
 # Node folder
 node_modules/
@@ -119,3 +120,4 @@ UpgradeLog*.XML
 /Exporters/3ds Max/Max2Babylon.sln.ide
 /Exporters/3ds Max/Max2Babylon.sln.ide
 /Exporters/ExportToBabylon.sln.ide
+/.vs
