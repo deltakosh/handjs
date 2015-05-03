@@ -1,3 +1,5 @@
+# Hand.js
+
 Starting in September 2012, Microsoft proposed a specification for unifying touch, pen and mouse events called pointer events.
 
 Modern browsers are not yet all supporting it right. Only Internet Explorer 10+ and Microsoft Edge support it.
