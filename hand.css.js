@@ -1,4 +1,7 @@
 ﻿(function () {
+    if (window.PointerEvent)
+        return;
+        
     // Handling touch-action css rule
     if (document.styleSheets && document.addEventListener) {
         document.addEventListener("DOMContentLoaded", function () {
@@ -76,4 +79,4 @@
             }
         }, false);
     }
-});
+})();
