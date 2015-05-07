@@ -51,7 +51,7 @@
                 for (var index = 0; index < document.styleSheets.length; index++) {
                     var sheet = document.styleSheets[index];
 
-                    if (sheet.href === undefined) { // it is an inline style
+                    if (sheet.href == null /* undefined or null */) { // it is an inline style
                         continue;
                     }
 
