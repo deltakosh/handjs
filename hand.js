@@ -416,40 +416,44 @@ var HANDJS = HANDJS || {};
     interceptAddEventListener(window);
     interceptAddEventListener(window.HTMLElement || window.Element);
     interceptAddEventListener(document);
-    interceptAddEventListener(HTMLBodyElement);
-    interceptAddEventListener(HTMLDivElement);
-    interceptAddEventListener(HTMLImageElement);
-    interceptAddEventListener(HTMLUListElement);
-    interceptAddEventListener(HTMLAnchorElement);
-    interceptAddEventListener(HTMLLIElement);
-    interceptAddEventListener(HTMLTableElement);
-    if (window.HTMLSpanElement) {
-        interceptAddEventListener(HTMLSpanElement);
+    if (!navigator.isCocoonJS){
+        interceptAddEventListener(HTMLBodyElement);
+        interceptAddEventListener(HTMLDivElement);
+        interceptAddEventListener(HTMLImageElement);
+        interceptAddEventListener(HTMLUListElement);
+        interceptAddEventListener(HTMLAnchorElement);
+        interceptAddEventListener(HTMLLIElement);
+        interceptAddEventListener(HTMLTableElement);
+        if (window.HTMLSpanElement) {
+            interceptAddEventListener(HTMLSpanElement);
+        }
     }
     if (window.HTMLCanvasElement) {
         interceptAddEventListener(HTMLCanvasElement);
     }
-    if (window.SVGElement) {
+    if (!navigator.isCocoonJS && window.SVGElement) {
         interceptAddEventListener(SVGElement);
     }
 
     interceptRemoveEventListener(window);
     interceptRemoveEventListener(window.HTMLElement || window.Element);
     interceptRemoveEventListener(document);
-    interceptRemoveEventListener(HTMLBodyElement);
-    interceptRemoveEventListener(HTMLDivElement);
-    interceptRemoveEventListener(HTMLImageElement);
-    interceptRemoveEventListener(HTMLUListElement);
-    interceptRemoveEventListener(HTMLAnchorElement);
-    interceptRemoveEventListener(HTMLLIElement);
-    interceptRemoveEventListener(HTMLTableElement);
-    if (window.HTMLSpanElement) {
-        interceptRemoveEventListener(HTMLSpanElement);
+    if (!navigator.isCocoonJS){
+        interceptRemoveEventListener(HTMLBodyElement);
+        interceptRemoveEventListener(HTMLDivElement);
+        interceptRemoveEventListener(HTMLImageElement);
+        interceptRemoveEventListener(HTMLUListElement);
+        interceptRemoveEventListener(HTMLAnchorElement);
+        interceptRemoveEventListener(HTMLLIElement);
+        interceptRemoveEventListener(HTMLTableElement);
+        if (window.HTMLSpanElement) {
+            interceptRemoveEventListener(HTMLSpanElement);
+        }
     }
     if (window.HTMLCanvasElement) {
         interceptRemoveEventListener(HTMLCanvasElement);
     }
-    if (window.SVGElement) {
+    if (!navigator.isCocoonJS && window.SVGElement) {
         interceptRemoveEventListener(SVGElement);
     }
 
@@ -595,35 +599,37 @@ var HANDJS = HANDJS || {};
                             eventObject.preventDefault();
 
                         generateTouchEventProxyIfRegistered("pointermove", touchPoint, currentTarget, eventObject, true);
-
-                        if (currentTarget === newTarget) {
-                            continue; // We can skip this as the pointer is effectively over the current target
-                        }
-
-                        if (currentTarget) {
-                            // Raise out
-                            generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true, newTarget);
-
-                            // Raise leave
-                            if (!currentTarget.contains(newTarget)) { // Leave must be called if the new target is not a child of the current
-                                dispatchPointerLeave(currentTarget, newTarget, function (targetNode) {
-                                    generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false, newTarget);
-                                });
+                        if (!navigator.isCocoonJS){
+                            var newTarget = document.elementFromPoint(touchPoint.clientX, touchPoint.clientY);
+                            if (currentTarget === newTarget) {
+                                continue; // We can skip this as the pointer is effectively over the current target
                             }
-                        }
 
-                        if (newTarget) {
-                            // Raise over
-                            generateTouchEventProxyIfRegistered("pointerover", touchPoint, newTarget, eventObject, true, currentTarget);
+                            if (currentTarget) {
+                                // Raise out
+                                generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true, newTarget);
 
-                            // Raise enter
-                            if (!newTarget.contains(currentTarget)) { // Leave must be called if the new target is not the parent of the current
-                                dispatchPointerEnter(newTarget, currentTarget, function (targetNode) {
-                                    generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, false, currentTarget);
-                                });
+                                // Raise leave
+                                if (!currentTarget.contains(newTarget)) { // Leave must be called if the new target is not a child of the current
+                                    dispatchPointerLeave(currentTarget, newTarget, function (targetNode) {
+                                        generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false, newTarget);
+                                    });
+                                }
                             }
+
+                            if (newTarget) {
+                                // Raise over
+                                generateTouchEventProxyIfRegistered("pointerover", touchPoint, newTarget, eventObject, true, currentTarget);
+
+                                // Raise enter
+                                if (!newTarget.contains(currentTarget)) { // Leave must be called if the new target is not the parent of the current
+                                    dispatchPointerEnter(newTarget, currentTarget, function (targetNode) {
+                                        generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, false, currentTarget);
+                                    })
+                                }
+                            }
+                            previousTargets[touchPoint.identifier] = newTarget;
                         }
-                        previousTargets[touchPoint.identifier] = newTarget;
                     }
                     setTouchTimer();
                 });
@@ -705,7 +711,7 @@ var HANDJS = HANDJS || {};
                 for (var index = 0; index < document.styleSheets.length; index++) {
                     var sheet = document.styleSheets[index];
 
-                    if (sheet.href === undefined) { // it is an inline style
+                    if (sheet.href == null /* undefined or null */) { // it is an inline style
                         continue;
                     }
 
