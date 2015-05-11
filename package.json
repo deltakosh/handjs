@@ -1,6 +1,6 @@
 {
   "name": "handjs",
-  "version": "1.3.1",
+  "version": "1.3.11",
   "description": "Hand.js is a polyfill for pointer events.",
   "main": "hand.js",
   "devDependencies": {
