@@ -126,3 +126,4 @@ UpgradeLog*.XML
 *#
 *.idea
 bower_components
+dist
