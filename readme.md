@@ -11,7 +11,7 @@ Write once, use it everywhere! Don't bother with mouse and touch events. Pointer
 You can find a test page right here: http://www.catuhe.com/msdn/handjs/index.html
 
 ## Install
-You cann use ```npm install handjs``` or ```bower install handjs``` to install it locally
+You can use ```npm install handjs``` or ```bower install handjs``` to install it locally
 
 ## Features
 Hand.js supports the following;
