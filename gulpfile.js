@@ -2,7 +2,7 @@ var gulp = require('gulp-param')(require('gulp'), process.argv),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
     concat = require('gulp-concat'),
-    clean = require('gulp-clean'),
+    // clean = require('gulp-clean'), /* gulp-clean plugin is deprecated for gulp-rimraf */
     pkg = require('./package.json');
     
     
