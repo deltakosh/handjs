@@ -577,6 +577,9 @@
                         var touchPoint = eventObject.changedTouches[i];
                         var currentTarget = previousTargets[touchPoint.identifier];
 
+                        if (!currentTarget)
+                            continue;
+
                         generateTouchEventProxyIfRegistered("pointerup", touchPoint, currentTarget, eventObject, true);
                         generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true);
 
@@ -584,6 +587,7 @@
                         dispatchPointerLeave(currentTarget, null, function (targetNode) {
                             generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false);
                         });
+                        delete previousTargets[touchPoint.identifier];
                     }
                     setTouchTimer();
                 });
@@ -594,9 +598,24 @@
                         var newTarget = document.elementFromPoint(touchPoint.clientX, touchPoint.clientY);
                         var currentTarget = previousTargets[touchPoint.identifier];
 
+                        if (!currentTarget)
+                            continue;
+
                         // If force preventDefault
                         if (currentTarget && checkPreventDefault(currentTarget) === true)
                             eventObject.preventDefault();
+
+                        // Viewport manipulation fires non-cancelable touchmove
+                        if (!eventObject.cancelable) {
+                            delete previousTargets[touchPoint.identifier];
+                            generateTouchEventProxyIfRegistered("pointercancel", touchPoint, currentTarget, eventObject, true);
+                            generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true);
+
+                            dispatchPointerLeave(currentTarget, null, function (targetNode) {
+                                generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false);
+                            });
+                            continue;
+                        }
 
                         generateTouchEventProxyIfRegistered("pointermove", touchPoint, currentTarget, eventObject, true);
                         if (!navigator.isCocoonJS){

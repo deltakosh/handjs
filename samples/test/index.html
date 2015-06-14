@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="index.css" />
+    <script src="../../src/hand.base.js"></script>
+    <script src="../../src/hand.css.js"></script>
+    <script src="index.js"></script>
+</head>
+<body>
+    <div id="testpanel">
+        <input id="updown" type="checkbox" onclick="togglePointerUpDown(event)" /><label for="updown">Up/Down</label><br />
+        <input id="move" type="checkbox" onclick="togglePointerMove(event)" /><label for="move">Move</label><br />
+        <input id="overout" type="checkbox" onclick="togglePointerOverOut(event)" /><label for="overout">Over/Out</label><br />
+        <input id="enterleave" type="checkbox" onclick="togglePointerEnterLeave(event)" /><label for="enterleave">Enter/Leave</label><br />
+        <input id="cancel" type="checkbox" onclick="togglePointerCancel(event)" /><label for="cancel">Cancel</label>
+
+        <div id="div1" class="first">
+            <div id="div2" class="second">
+                <div id="div3" class="height third touch-none">
+                </div>
+                <div class="height third">
+                </div>
+            </div>
+        </div>
+        <input type="button" value="Clear" onclick="clearLog()" />
+    </div>
+    <div id="log">
+    </div>
+</body>
+</html>

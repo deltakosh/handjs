@@ -1,0 +1,7 @@
+﻿#testpanel { margin-left: 50px }
+.touch-none { touch-action: none }
+
+.height { height: 100px; }
+.first { width: 120px; background-color: gray }
+.second { width: 110px; background-color: #555555 }
+.third { width: 100px; background-color: black }
