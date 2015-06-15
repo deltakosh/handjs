@@ -59,12 +59,13 @@
     var POINTER_TYPE_MOUSE = "mouse";
 
     var previousTargets = {};
+    var defaultPreventions = {};
 
     var checkPreventDefault = function (node) {
-        while (node && !node.handjs_forcePreventDefault) {
-            node = node.parentNode;
+        while (node && !node.handjs_forcePreventDefault && getComputedStyle(node).touchAction !== "none") {
+            node = node.parentElement;
         }
-        return !!node || window.handjs_forcePreventDefault;
+        return node;
     };
 
     // Touch events
@@ -559,6 +560,7 @@
                     for (var i = 0; i < eventObject.changedTouches.length; ++i) {
                         var touchPoint = eventObject.changedTouches[i];
                         previousTargets[touchPoint.identifier] = touchPoint.target;
+                        defaultPreventions[touchPoint.identifier] = checkPreventDefault(touchPoint.target);
 
                         generateTouchEventProxyIfRegistered("pointerover", touchPoint, touchPoint.target, eventObject, true);
 
@@ -588,6 +590,7 @@
                             generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false);
                         });
                         delete previousTargets[touchPoint.identifier];
+                        delete defaultPreventions[touchPoint.identifier];
                     }
                     setTouchTimer();
                 });
@@ -601,12 +604,14 @@
                         if (!currentTarget)
                             continue;
 
+                        var defaultPreventedElement = defaultPreventions[touchPoint.identifier];
                         // If force preventDefault
-                        if (currentTarget && checkPreventDefault(currentTarget) === true)
-                            eventObject.preventDefault();
-
-                        // Viewport manipulation fires non-cancelable touchmove
-                        if (!eventObject.cancelable) {
+                        if (defaultPreventedElement) {
+                            if (defaultPreventedElement.style.touchAction === undefined)
+                                eventObject.preventDefault();
+                        }
+                        // touchmove without `touch-action: none` fires pointercancel
+                        else {
                             delete previousTargets[touchPoint.identifier];
                             generateTouchEventProxyIfRegistered("pointercancel", touchPoint, currentTarget, eventObject, true);
                             generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true);
