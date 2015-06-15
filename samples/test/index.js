@@ -1,4 +1,19 @@
-﻿function logText(text) {
+﻿document.addEventListener("DOMContentLoaded", function () {
+    togglePointerUpDown({ target: updown });
+    updown.onclick = togglePointerUpDown;
+    togglePointerMove({ target: move });
+    move.onclick = togglePointerMove;
+    togglePointerOverOut({ target: overout });
+    overout.onclick = togglePointerOverOut;
+    togglePointerEnterLeave({ target: enterleave });
+    enterleave.onclick = togglePointerEnterLeave;
+    togglePointerCancel({ target: cancel });
+    cancel.onclick = togglePointerCancel;
+
+    clear.onclick = clearLog;
+});
+
+function logText(text) {
     var br = document.createElement("br");
     log.insertBefore(br, log.firstChild);
     log.insertBefore(document.createTextNode(text), br);

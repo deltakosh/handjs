@@ -1,7 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
+    <title>hand.js Pointer Events Testbed</title>
     <link rel="stylesheet" href="index.css" />
     <script src="../../src/hand.base.js"></script>
     <script src="../../src/hand.css.js"></script>
@@ -9,11 +10,11 @@
 </head>
 <body>
     <div id="testpanel">
-        <input id="updown" type="checkbox" onclick="togglePointerUpDown(event)" /><label for="updown">Up/Down</label><br />
-        <input id="move" type="checkbox" onclick="togglePointerMove(event)" /><label for="move">Move</label><br />
-        <input id="overout" type="checkbox" onclick="togglePointerOverOut(event)" /><label for="overout">Over/Out</label><br />
-        <input id="enterleave" type="checkbox" onclick="togglePointerEnterLeave(event)" /><label for="enterleave">Enter/Leave</label><br />
-        <input id="cancel" type="checkbox" onclick="togglePointerCancel(event)" /><label for="cancel">Cancel</label>
+        <input id="updown" type="checkbox" /><label for="updown">Up/Down</label><br />
+        <input id="move" type="checkbox" /><label for="move">Move</label><br />
+        <input id="overout" type="checkbox" /><label for="overout">Over/Out</label><br />
+        <input id="enterleave" type="checkbox" /><label for="enterleave">Enter/Leave</label><br />
+        <input id="cancel" type="checkbox" /><label for="cancel">Cancel</label>
 
         <div id="div1" class="first">
             <div id="div2" class="second">
@@ -23,7 +24,7 @@
                 </div>
             </div>
         </div>
-        <input type="button" value="Clear" onclick="clearLog()" />
+        <input id="clear" type="button" value="Clear" />
     </div>
     <div id="log">
     </div>
