@@ -73,7 +73,26 @@
         // Considering touch events are almost like super mouse events
         var evObj;
         
-        if (document.createEvent) {
+        if (window.MouseEvent && typeof MouseEvent.constructor.prototype === "function") {
+            evObj = new MouseEvent(newName, {
+                bubbles: canBubble,
+                cancelable: true,
+                view: window,
+                detail: 1,
+                screenX: sourceEvent.screenX,
+                screenY: sourceEvent.screenY,
+                clientX: sourceEvent.clientX,
+                clientY: sourceEvent.clientY,
+                ctrlKey: sourceEvent.ctrlKey,
+                altKey: sourceEvent.altKey,
+                shiftKey: sourceEvent.shiftKey,
+                metaKey: sourceEvent.metaKey,
+                button: sourceEvent.button,
+                buttons: sourceEvent.buttons,
+                relatedTarget: relatedTarget || sourceEvent.relatedTarget
+            });
+        }
+        else if (document.createEvent) {
             evObj = document.createEvent('MouseEvents');
             evObj.initMouseEvent(newName, canBubble, true, window, 1, sourceEvent.screenX, sourceEvent.screenY,
                 sourceEvent.clientX, sourceEvent.clientY, sourceEvent.ctrlKey, sourceEvent.altKey,
@@ -153,38 +172,18 @@
         }
 
 
-        if (sourceEvent.rotation)
-            evObj.rotation = sourceEvent.rotation;
-        else
-            evObj.rotation = 0;
+        evObj.rotation = sourceEvent.rotation || 0;
 
         // Timestamp
-        if (sourceEvent.hwTimestamp)
-            evObj.hwTimestamp = sourceEvent.hwTimestamp;
-        else
-            evObj.hwTimestamp = 0;
+        evObj.hwTimestamp = sourceEvent.hwTimestamp || 0;
 
         // Tilts
-        if (sourceEvent.tiltX)
-            evObj.tiltX = sourceEvent.tiltX;
-        else
-            evObj.tiltX = 0;
-
-        if (sourceEvent.tiltY)
-            evObj.tiltY = sourceEvent.tiltY;
-        else
-            evObj.tiltY = 0;
+        evObj.tiltX = sourceEvent.tiltX || 0;
+        evObj.tiltY = sourceEvent.tiltY || 0;
 
         // Width and Height
-        if (sourceEvent.height)
-            evObj.height = sourceEvent.height;
-        else
-            evObj.height = 0;
-
-        if (sourceEvent.width)
-            evObj.width = sourceEvent.width;
-        else
-            evObj.width = 0;
+        evObj.height = sourceEvent.height || 0;
+        evObj.width = sourceEvent.width || 0;
 
         // preventDefault
         evObj.preventDefault = function () {
