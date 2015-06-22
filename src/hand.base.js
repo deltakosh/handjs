@@ -250,7 +250,7 @@
     };
 
     var checkEventRegistration = function (node, eventName) {
-        return node.__handjsGlobalRegisteredEvents && node.__handjsGlobalRegisteredEvents[eventName];
+        return node.__handjsEventTunnels && node.__handjsEventTunnels[eventName] && node.__handjsEventTunnels[eventName].registrations > 0;
     };
     var findEventRegisteredNode = function (node, eventName) {
         while (node && !checkEventRegistration(node, eventName))
@@ -297,17 +297,17 @@
         return newEventName;
     };
 
-    var getManagedEventTunnelInfo = function (item, eventName) {
-        if (!item.__handjsManagedEventTunnels) {
-            item.__handjsManagedEventTunnels = {};
+    var getEventTunnelInfo = function (item, eventName) {
+        if (!item.__handjsEventTunnels) {
+            item.__handjsEventTunnels = {};
         }
-        if (!item.__handjsManagedEventTunnels[eventName]) {
-            item.__handjsManagedEventTunnels[eventName] = { registrations: 0, core: null, departure: null };
+        if (!item.__handjsEventTunnels[eventName]) {
+            item.__handjsEventTunnels[eventName] = { registrations: 0, core: null, departure: null };
         }
-        return item.__handjsManagedEventTunnels[eventName];
+        return item.__handjsEventTunnels[eventName];
     }
     var subscribeManagedEventTunnel = function (item, eventName, tunnelEventName, eventGenerator) {
-        var tunnel = getManagedEventTunnelInfo(item, eventName);
+        var tunnel = getEventTunnelInfo(item, eventName);
         tunnel.registrations++;
 
         if (tunnel.core) {
@@ -320,7 +320,7 @@
         item.addEventListener(tunnelEventName, tunnel.core);
     }
     var unsubscribeManagedEventTunnel = function (item, eventName) {
-        var tunnel = getManagedEventTunnelInfo(item, eventName);
+        var tunnel = getEventTunnelInfo(item, eventName);
         tunnel.registrations--;
 
         if (tunnel.registrations > 0) {
@@ -359,6 +359,15 @@
                     else {
                         unsubscribeManagedEventTunnel(item, eventName);
                     }
+                }
+                break;
+            default:
+                var tunnelInfo = getEventTunnelInfo(item, eventName);
+                if (enable) {
+                    tunnelInfo.registrations++;
+                }
+                else {
+                    tunnelInfo.registrations = Math.max(tunnelInfo.registrations - 1, 0);
                 }
                 break;
         }
