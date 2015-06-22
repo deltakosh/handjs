@@ -49,6 +49,16 @@
 			return this.replace(/^\s+|\s+$/, '');
 		};
 	}
+	if (!Object.assign) {
+	    Object.assign = function (target) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            for (var prop in arguments[i]) {
+	                target[prop] = arguments[i][prop];
+	            }
+	        }
+	        return target;
+	    }
+	}
 
     // Installing Hand.js
     var supportedEventsNames = ["pointerdown", "pointerup", "pointermove", "pointerover", "pointerout", "pointercancel", "pointerenter", "pointerleave"];
@@ -69,13 +79,15 @@
     };
 
     // Touch events
-    var generateTouchClonedEvent = function (sourceEvent, newName, canBubble, target, relatedTarget) {
+    var generateTouchClonedEvent = function (sourceEvent, newName, overrides) {
         // Considering touch events are almost like super mouse events
         var evObj;
+
+        if (!overrides) overrides = {};
         
         if (window.MouseEvent && typeof MouseEvent.constructor.prototype === "function") {
             evObj = new MouseEvent(newName, {
-                bubbles: canBubble,
+                bubbles: overrides.bubbles,
                 cancelable: true,
                 view: window,
                 detail: 1,
@@ -89,14 +101,14 @@
                 metaKey: sourceEvent.metaKey,
                 button: sourceEvent.button,
                 buttons: sourceEvent.buttons,
-                relatedTarget: relatedTarget || sourceEvent.relatedTarget
+                relatedTarget: overrides.relatedTarget || sourceEvent.relatedTarget
             });
         }
         else if (document.createEvent) {
             evObj = document.createEvent('MouseEvents');
-            evObj.initMouseEvent(newName, canBubble, true, window, 1, sourceEvent.screenX, sourceEvent.screenY,
+            evObj.initMouseEvent(newName, overrides.bubbles, true, window, 1, sourceEvent.screenX, sourceEvent.screenY,
                 sourceEvent.clientX, sourceEvent.clientY, sourceEvent.ctrlKey, sourceEvent.altKey,
-                sourceEvent.shiftKey, sourceEvent.metaKey, sourceEvent.button, relatedTarget || sourceEvent.relatedTarget);
+                sourceEvent.shiftKey, sourceEvent.metaKey, sourceEvent.button, overrides.relatedTarget || sourceEvent.relatedTarget);
         }
         else {
             evObj = document.createEventObject();
@@ -109,7 +121,7 @@
             evObj.shiftKey = sourceEvent.shiftKey;
             evObj.metaKey = sourceEvent.metaKey;
             evObj.button = sourceEvent.button;
-            evObj.relatedTarget = relatedTarget || sourceEvent.relatedTarget;
+            evObj.relatedTarget = overrides.relatedTarget || sourceEvent.relatedTarget;
         }
         // offsets
         if (evObj.offsetX === undefined) {
@@ -218,8 +230,8 @@
         }
 
         // Fire event
-        if (target)
-            target.dispatchEvent(evObj);
+        if (overrides.target)
+            overrides.target.dispatchEvent(evObj);
         else if (sourceEvent.target) {
             sourceEvent.target.dispatchEvent(evObj);
         } else {
@@ -227,10 +239,10 @@
         }
     };
 
-    var generateMouseProxy = function (evt, eventName, canBubble, target, relatedTarget) {
+    var generateMouseProxy = function (evt, eventName, overrides) {
         evt.pointerId = 1;
         evt.pointerType = POINTER_TYPE_MOUSE;
-        generateTouchClonedEvent(evt, eventName, canBubble, target, relatedTarget);
+        generateTouchClonedEvent(evt, eventName, overrides);
     };
 
     var generateTouchEventProxy = function (name, touchPoint, target, eventObject, canBubble, relatedTarget) {
@@ -246,7 +258,7 @@
             };
         }
 
-        generateTouchClonedEvent(touchPoint, name, canBubble, target, relatedTarget);
+        generateTouchClonedEvent(touchPoint, name, { bubbles: canBubble, target: target, relatedTarget: relatedTarget });
     };
 
     var checkEventRegistration = function (node, eventName) {
@@ -520,7 +532,7 @@
         ["pointerdown", "pointermove", "pointerup", "pointerover", "pointerout"].forEach(function (eventName) {
             window.addEventListener(nameGenerator(eventName), function (evt) {
                 if (!touching && findEventRegisteredNode(evt.target, eventName))
-                    eventGenerator(evt, eventName, true);
+                    eventGenerator(evt, eventName, { bubbles: true });
             });
         });
         if (window['on' + nameGenerator("pointerenter").toLowerCase()] === undefined)
@@ -532,7 +544,7 @@
                     return;
                 else if (!foundNode.contains(evt.relatedTarget)) {
                     dispatchPointerEnter(foundNode, evt.relatedTarget, function (targetNode) {
-                        eventGenerator(evt, "pointerenter", false, targetNode, evt.relatedTarget);
+                        eventGenerator(evt, "pointerenter", { target: targetNode });
                     });
                 }
             });
@@ -545,7 +557,7 @@
                     return;
                 else if (!foundNode.contains(evt.relatedTarget)) {
                     dispatchPointerLeave(foundNode, evt.relatedTarget, function (targetNode) {
-                        eventGenerator(evt, "pointerleave", false, targetNode, evt.relatedTarget);
+                        eventGenerator(evt, "pointerleave", { target: targetNode });
                     });
                 }
             });
