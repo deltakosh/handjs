@@ -22,7 +22,7 @@ function eventLogger(e) {
     logText([e.type, e.pointerId, e.target.tagName, e.target.id, e.pointerType,
              e.currentTarget ? ["currentTarget: [", e.currentTarget.tagName, e.currentTarget.id, "]"].join(' ') : "",
              e.relatedTarget ? ["relatedTarget: [", e.relatedTarget.tagName, e.relatedTarget.id, "]"].join(' ') : "",
-             e.clientX, e.clientY, window.performance ? performance.now().toFixed(3) : ""].join(' '));
+             e.clientX, e.clientY, e.buttons, window.performance ? performance.now().toFixed(3) : ""].join(' '));
 }
 function clearLog() {
     while (log.firstChild)

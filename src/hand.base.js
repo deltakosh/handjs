@@ -297,53 +297,47 @@
         return newEventName;
     };
 
-    var registerOrUnregisterEvent = function (item, name, func, enable) {
-        if (item.__handjsRegisteredEvents === undefined) {
-            item.__handjsRegisteredEvents = [];
+    var getManagedEventTunnelInfo = function (item, eventName) {
+        if (!item.__handjsManagedEventTunnels) {
+            item.__handjsManagedEventTunnels = {};
+        }
+        if (!item.__handjsManagedEventTunnels[eventName]) {
+            item.__handjsManagedEventTunnels[eventName] = { registrations: 0, core: null, departure: null };
+        }
+        return item.__handjsManagedEventTunnels[eventName];
+    }
+    var subscribeManagedEventTunnel = function (item, eventName, tunnelEventName, eventGenerator) {
+        var tunnel = getManagedEventTunnelInfo(item, eventName);
+        tunnel.registrations++;
+
+        if (tunnel.core) {
+            return;
         }
 
-        if (enable) {
-            if (item.__handjsRegisteredEvents[name] !== undefined) {
-                item.__handjsRegisteredEvents[name]++;
-                return;
-            }
+        // Add pointerenter/leave event tunnel
+        tunnel.core = function (evt) { eventGenerator(evt, eventName); };
+        tunnel.departure = tunnelEventName;
+        item.addEventListener(tunnelEventName, tunnel.core);
+    }
+    var unsubscribeManagedEventTunnel = function (item, eventName) {
+        var tunnel = getManagedEventTunnelInfo(item, eventName);
+        tunnel.registrations--;
 
-            item.__handjsRegisteredEvents[name] = 1;
-            item.addEventListener(name, func, false);
-        } else {
-
-            if (item.__handjsRegisteredEvents.indexOf(name) !== -1) {
-                item.__handjsRegisteredEvents[name]--;
-
-                if (item.__handjsRegisteredEvents[name] !== 0) {
-                    return;
-                }
-            }
-            item.removeEventListener(name, func);
-            item.__handjsRegisteredEvents[name] = 0;
+        if (tunnel.registrations > 0) {
+            return;
         }
-    };
+        if (!tunnel.core) {
+            // Unsubscription before any subscription
+            tunnel.registrations = 0;
+            return;
+        }
+
+        // Remove pointerenter/leave event tunnel
+        item.removeEventListener(tunnel.departure, tunnel.core);
+        tunnel.core = tunnel.departure = null;
+    }
 
     var setTouchAware = function (item, eventName, enable) {
-        // Leaving tokens
-        if (!item.__handjsGlobalRegisteredEvents) {
-            item.__handjsGlobalRegisteredEvents = [];
-        }
-        if (enable) {
-            if (item.__handjsGlobalRegisteredEvents[eventName] !== undefined) {
-                item.__handjsGlobalRegisteredEvents[eventName]++;
-                return;
-            }
-            item.__handjsGlobalRegisteredEvents[eventName] = 1;
-        } else {
-            if (item.__handjsGlobalRegisteredEvents[eventName] !== undefined) {
-                item.__handjsGlobalRegisteredEvents[eventName]--;
-                if (item.__handjsGlobalRegisteredEvents[eventName] < 0) {
-                    item.__handjsGlobalRegisteredEvents[eventName] = 0;
-                }
-            }
-        }
-
         var nameGenerator;
         var eventGenerator;
         if (window.MSPointerEvent) {
@@ -359,7 +353,12 @@
             case "pointerleave":
                 var targetEvent = nameGenerator(eventName);
                 if (item['on' + targetEvent.toLowerCase()] !== undefined) {
-                    registerOrUnregisterEvent(item, targetEvent, function (evt) { eventGenerator(evt, eventName); }, enable);
+                    if (enable) {
+                        subscribeManagedEventTunnel(item, eventName, targetEvent, eventGenerator);
+                    }
+                    else {
+                        unsubscribeManagedEventTunnel(item, eventName);
+                    }
                 }
                 break;
         }
@@ -400,7 +399,7 @@
             }
 
             if (current === undefined) {
-                this.detachEvent(getMouseEquivalentEventName(name), func);
+                this.detachEvent("on" + getMouseEquivalentEventName(name), func);
             } else {
                 current.call(this, name, func, capture);
             }
