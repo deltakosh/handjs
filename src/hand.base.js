@@ -182,8 +182,8 @@
         evObj.tiltY = sourceEvent.tiltY || 0;
 
         // Width and Height
-        evObj.height = sourceEvent.height || 0;
-        evObj.width = sourceEvent.width || 0;
+        evObj.height = sourceEvent.height || sourceEvent.radiusX || 0;
+        evObj.width = sourceEvent.width || sourceEvent.radiusY || 0;
 
         // preventDefault
         evObj.preventDefault = function () {
