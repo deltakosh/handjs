@@ -100,7 +100,7 @@
                 shiftKey: sourceEvent.shiftKey,
                 metaKey: sourceEvent.metaKey,
                 button: sourceEvent.button,
-                buttons: sourceEvent.buttons,
+                buttons: ("buttons" in overrides) ? overrides.buttons : sourceEvent.buttons,
                 relatedTarget: overrides.relatedTarget || sourceEvent.relatedTarget
             });
         }
@@ -245,7 +245,7 @@
         generateTouchClonedEvent(evt, eventName, overrides);
     };
 
-    var generateTouchEventProxy = function (name, touchPoint, target, eventObject, canBubble, relatedTarget) {
+    var generateTouchEventProxy = function (name, touchPoint, target, eventObject, overrides) {
         var touchPointId = touchPoint.identifier + 2; // Just to not override mouse id
 
         touchPoint.pointerId = touchPointId;
@@ -258,7 +258,7 @@
             };
         }
 
-        generateTouchClonedEvent(touchPoint, name, { bubbles: canBubble, target: target, relatedTarget: relatedTarget });
+        generateTouchClonedEvent(touchPoint, name, Object.assign(overrides || {}, { target: target }));
     };
 
     var checkEventRegistration = function (node, eventName) {
@@ -273,30 +273,11 @@
             return window;
     };
 
-    var generateTouchEventProxyIfRegistered = function (eventName, touchPoint, target, eventObject, canBubble, relatedTarget) { // Check if user registered this event
+    var generateTouchEventProxyIfRegistered = function (eventName, touchPoint, target, eventObject, overrides) { // Check if user registered this event
         if (findEventRegisteredNode(target, eventName)) {
-            generateTouchEventProxy(eventName, touchPoint, target, eventObject, canBubble, relatedTarget);
+            generateTouchEventProxy(eventName, touchPoint, target, eventObject, overrides);
         }
     };
-
-    //var handleOtherEvent = function (eventObject, name, useLocalTarget, checkRegistration) {
-    //    if (eventObject.preventManipulation)
-    //        eventObject.preventManipulation();
-
-    //    for (var i = 0; i < eventObject.changedTouches.length; ++i) {
-    //        var touchPoint = eventObject.changedTouches[i];
-
-    //        if (useLocalTarget) {
-    //            previousTargets[touchPoint.identifier] = touchPoint.target;
-    //        }
-
-    //        if (checkRegistration) {
-    //            generateTouchEventProxyIfRegistered(name, touchPoint, previousTargets[touchPoint.identifier], eventObject, true);
-    //        } else {
-    //            generateTouchEventProxy(name, touchPoint, previousTargets[touchPoint.identifier], eventObject, true);
-    //        }
-    //    }
-    //};
 
     var getMouseEquivalentEventName = function (eventName) {
         return eventName.toLowerCase().replace("pointer", "mouse");
@@ -327,7 +308,7 @@
         }
 
         // Add pointerenter/leave event tunnel
-        tunnel.core = function (evt) { eventGenerator(evt, eventName); };
+        tunnel.core = function (evt) { if (!touching) eventGenerator(evt, eventName); };
         tunnel.departure = tunnelEventName;
         item.addEventListener(tunnelEventName, tunnel.core);
     }
@@ -581,14 +562,14 @@
                         previousTargets[touchPoint.identifier] = touchPoint.target;
                         defaultPreventions[touchPoint.identifier] = checkPreventDefault(touchPoint.target);
 
-                        generateTouchEventProxyIfRegistered("pointerover", touchPoint, touchPoint.target, eventObject, true);
+                        generateTouchEventProxyIfRegistered("pointerover", touchPoint, touchPoint.target, eventObject, { bubbles: true, buttons: 1 });
 
                         //pointerenter should not be bubbled
                         dispatchPointerEnter(touchPoint.target, null, function (targetNode) {
-                            generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, false);
+                            generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, { buttons: 1 });
                         });
 
-                        generateTouchEventProxyIfRegistered("pointerdown", touchPoint, touchPoint.target, eventObject, true);
+                        generateTouchEventProxyIfRegistered("pointerdown", touchPoint, touchPoint.target, eventObject, { bubbles: true, buttons: 1 });
                     }
                     setTouchTimer();
                 });
@@ -601,12 +582,12 @@
                         if (!currentTarget)
                             continue;
 
-                        generateTouchEventProxyIfRegistered("pointerup", touchPoint, currentTarget, eventObject, true);
-                        generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true);
+                        generateTouchEventProxyIfRegistered("pointerup", touchPoint, currentTarget, eventObject, { bubbles: true });
+                        generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, { bubbles: true });
 
                         //pointerleave should not be bubbled
                         dispatchPointerLeave(currentTarget, null, function (targetNode) {
-                            generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false);
+                            generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject);
                         });
                         delete previousTargets[touchPoint.identifier];
                         delete defaultPreventions[touchPoint.identifier];
@@ -632,16 +613,16 @@
                         // touchmove without `touch-action: none` fires pointercancel
                         else {
                             delete previousTargets[touchPoint.identifier];
-                            generateTouchEventProxyIfRegistered("pointercancel", touchPoint, currentTarget, eventObject, true);
-                            generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true);
+                            generateTouchEventProxyIfRegistered("pointercancel", touchPoint, currentTarget, eventObject, { bubbles: true, buttons: 1 });
+                            generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, { bubbles: true, buttons: 1 });
 
                             dispatchPointerLeave(currentTarget, null, function (targetNode) {
-                                generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false);
+                                generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, { buttons: 1 });
                             });
                             continue;
                         }
 
-                        generateTouchEventProxyIfRegistered("pointermove", touchPoint, currentTarget, eventObject, true);
+                        generateTouchEventProxyIfRegistered("pointermove", touchPoint, currentTarget, eventObject, { bubbles: true, buttons: 1 });
                         if (!navigator.isCocoonJS){
                             var newTarget = document.elementFromPoint(touchPoint.clientX, touchPoint.clientY);
                             if (currentTarget === newTarget) {
@@ -650,24 +631,24 @@
 
                             if (currentTarget) {
                                 // Raise out
-                                generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, true, newTarget);
+                                generateTouchEventProxyIfRegistered("pointerout", touchPoint, currentTarget, eventObject, { bubbles: true, buttons: 1, relatedTarget: newTarget });
 
                                 // Raise leave
                                 if (!currentTarget.contains(newTarget)) { // Leave must be called if the new target is not a child of the current
                                     dispatchPointerLeave(currentTarget, newTarget, function (targetNode) {
-                                        generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, false, newTarget);
+                                        generateTouchEventProxy("pointerleave", touchPoint, targetNode, eventObject, { buttons: 1, relatedTarget: newTarget });
                                     });
                                 }
                             }
 
                             if (newTarget) {
                                 // Raise over
-                                generateTouchEventProxyIfRegistered("pointerover", touchPoint, newTarget, eventObject, true, currentTarget);
+                                generateTouchEventProxyIfRegistered("pointerover", touchPoint, newTarget, eventObject, { bubbles: true, buttons: 1, relatedTarget: currentTarget });
 
                                 // Raise enter
                                 if (!newTarget.contains(currentTarget)) { // Leave must be called if the new target is not the parent of the current
                                     dispatchPointerEnter(newTarget, currentTarget, function (targetNode) {
-                                        generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, false, currentTarget);
+                                        generateTouchEventProxy("pointerenter", touchPoint, targetNode, eventObject, { buttons: 1, relatedTarget: currentTarget });
                                     })
                                 }
                             }
@@ -681,7 +662,7 @@
                     for (var i = 0; i < eventObject.changedTouches.length; ++i) {
                         var touchPoint = eventObject.changedTouches[i];
 
-                        generateTouchEventProxyIfRegistered("pointercancel", touchPoint, previousTargets[touchPoint.identifier], eventObject, true);
+                        generateTouchEventProxyIfRegistered("pointercancel", touchPoint, previousTargets[touchPoint.identifier], eventObject, { buttons: 1 });
                     }
                 });
             }
