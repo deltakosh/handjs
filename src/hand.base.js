@@ -85,6 +85,8 @@
 
         if (!overrides) overrides = {};
         
+        var buttons = ("buttons" in overrides) ? overrides.buttons : sourceEvent.buttons;
+
         if (window.MouseEvent && typeof MouseEvent.constructor.prototype === "function") {
             evObj = new MouseEvent(newName, {
                 bubbles: overrides.bubbles,
@@ -100,7 +102,7 @@
                 shiftKey: sourceEvent.shiftKey,
                 metaKey: sourceEvent.metaKey,
                 button: sourceEvent.button,
-                buttons: ("buttons" in overrides) ? overrides.buttons : sourceEvent.buttons,
+                buttons: buttons,
                 relatedTarget: overrides.relatedTarget || sourceEvent.relatedTarget
             });
         }
@@ -109,6 +111,7 @@
             evObj.initMouseEvent(newName, overrides.bubbles, true, window, 1, sourceEvent.screenX, sourceEvent.screenY,
                 sourceEvent.clientX, sourceEvent.clientY, sourceEvent.ctrlKey, sourceEvent.altKey,
                 sourceEvent.shiftKey, sourceEvent.metaKey, sourceEvent.button, overrides.relatedTarget || sourceEvent.relatedTarget);
+            evObj.buttons = buttons;
         }
         else {
             evObj = document.createEventObject();
@@ -122,6 +125,7 @@
             evObj.metaKey = sourceEvent.metaKey;
             evObj.button = sourceEvent.button;
             evObj.relatedTarget = overrides.relatedTarget || sourceEvent.relatedTarget;
+            evObj.buttons = buttons;
         }
         // offsets
         if (evObj.offsetX === undefined) {
@@ -175,7 +179,9 @@
         else {
             var button = 0;
 
-            if (sourceEvent.which !== undefined)
+            if (buttons !== undefined)
+                button = buttons;
+            else if (sourceEvent.which !== undefined)
                 button = sourceEvent.which;
             else if (sourceEvent.button !== undefined) {
                 button = sourceEvent.button;
