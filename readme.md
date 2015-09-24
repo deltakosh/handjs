@@ -1,7 +1,11 @@
 # Hand.js
 
+
 **Hand.js is now discontinued in favor of jQuery PEP: https://github.com/jquery/PEP**
 
+
+
+## Motivation
 Starting in September 2012, Microsoft proposed a specification for unifying touch, pen and mouse events called pointer events.
 
 Modern browsers are not yet all supporting it right. Only Internet Explorer 10+ and Microsoft Edge support it.
